@@ -1,4 +1,4 @@
-const { client, getAllUsers, createUser } = require("./index");
+const { client, getAllUsers, createUser, updateUser } = require("./index");
 
 async function dropTables() {
     try {
@@ -67,29 +67,6 @@ async function createInitialUsers() {
   }
 }
 
-async function updateUser(id, fields = {}) {
-    const setString = Object.keys(fields).map(
-        (key, index) => `"${ key }"=$${ index + 1 }`
-    ).join(', ');
-
-    if (setString.length === 0) {
-        return;
-    }
-
-    try {
-        const result = await client.query(`
-        UPDATE users
-        SET ${ setString }
-        WHERE id=${ id }
-        RETURNING *;
-        `, Object.values(fields));
-
-        return result;
-    } catch (error) {
-        throw error;
-    }
-}
-
 async function rebuildDB() {
   try {
     client.connect();
@@ -106,8 +83,16 @@ async function testDB() {
   try {
     console.log("Starting to test database...");
 
+    console.log('Calling getAllUsers"')
     const users = await getAllUsers();
-    console.log("getAllUsers:", users);
+    console.log("Result:", users);
+
+    console.log('Calling updateUser on users[0')
+    const updateUserResult = await updateUser(users[0].id, {
+        name: "Newname Sogood",
+        location: "Lesterville, KY"
+    });
+    console.log("Result:", updateUserResult);
 
     console.log("Finished database tests!");
   } catch (error) {
