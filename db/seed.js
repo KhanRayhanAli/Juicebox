@@ -1,10 +1,11 @@
-const { client, getAllUsers, createUser, updateUser } = require("./index");
+const { client, getAllUsers, createUser, updateUser, getAllPosts, getPostsByUser, getUserById, createPost, updatePost } = require("./index");
 
 async function dropTables() {
     try {
       console.log("Starting to drop tables...");
   
       await client.query(`
+      DROP TABLE IF EXISTS posts;
       DROP TABLE IF EXISTS users;
       `);
   
@@ -28,7 +29,15 @@ async function createTables() {
         location VARCHAR(255) NOT NULL,
         active BOOLEAN DEFAULT true
       );
+      CREATE TABLE posts(
+        id SERIAL PRIMARY KEY,
+        "authorId" INTEGER REFERENCES users(id) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
+        active BOOLEAN DEFAULT true
+      );
       `);
+      
   
       console.log("Finished building tables!");
     } catch (error) {
@@ -67,6 +76,34 @@ async function createInitialUsers() {
   }
 }
 
+async function createInitialPosts(){
+  try{
+    const [albert, sandra, glamgal] = await getAllUsers();
+
+    await createPost({
+      authorId: albert.id,
+      title: "First Post",
+      content: "This is my first post. It is short."
+    });
+
+    await createPost({
+      authorId: glamgal.id,
+      title: "First Post",
+      content: "This is my first post. It is also short."
+    });
+
+    await createPost({
+      authorId: sandra.id,
+      title: "NOT Sandra Bullock",
+      content: "I am NOT Sandra Bullock. Don't EVER call me Sandra Bullock"
+    });
+    console.log("Posts have been created!")
+  } catch (error) {
+    console.log("Error creating Sandra Bullocks weird post!")
+    throw error;
+  }
+}
+
 async function rebuildDB() {
   try {
     client.connect();
@@ -74,7 +111,9 @@ async function rebuildDB() {
     await dropTables();
     await createTables();
     await createInitialUsers();
+    await createInitialPosts();
   } catch (error) {
+    console.log("Error during rebuildDB")
     throw error;
   }
 }
@@ -87,12 +126,27 @@ async function testDB() {
     const users = await getAllUsers();
     console.log("Result:", users);
 
-    console.log('Calling updateUser on users[0')
+    console.log('Calling updateUser on users[0]')
     const updateUserResult = await updateUser(users[0].id, {
         name: "Newname Sogood",
         location: "Lesterville, KY"
     });
     console.log("Result:", updateUserResult);
+
+    console.log("Running getAllPosts");
+    const posts = await getAllPosts();
+    console.log("Result:", posts);
+
+    console.log("Calling updatePost on posts[0]");
+    const updatePostResult = await updatePost(posts[0].id, {
+      title: "New Title",
+      content: "Updated Content"
+    });
+    console.log("Result:", updatePostResult);
+
+    console.log("Calling getUserById with 1");
+    const albert = await getUserById(1);
+    console.log("Result:", albert);
 
     console.log("Finished database tests!");
   } catch (error) {
