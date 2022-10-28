@@ -1,27 +1,39 @@
-const { client, getAllUsers, createUser, updateUser, getAllPosts, getPostsByUser, getUserById, createPost, updatePost } = require("./index");
+const {
+  client,
+  getAllUsers,
+  createUser,
+  updateUser,
+  getAllPosts,
+  getPostsByUser,
+  getUserById,
+  createPost,
+  updatePost,
+} = require("./index");
 
 async function dropTables() {
-    try {
-      console.log("Starting to drop tables...");
-  
-      await client.query(`
+  try {
+    console.log("Starting to drop tables...");
+
+    await client.query(`
+      DROP TABLE IF EXISTS post_tags;
+      DROP TABLE IF EXISTS tags;
       DROP TABLE IF EXISTS posts;
       DROP TABLE IF EXISTS users;
-      `);
-  
-      console.log("Finished dropping tables!");
-    } catch (error) {
-      console.error("Error dropping tables!");
-      throw error;
-    }
+    `);
+
+    console.log("Finished dropping tables!");
+  } catch (error) {
+    console.error("Error dropping tables!");
+    throw error;
+  }
 }
 
 async function createTables() {
-    try {
-      console.log("Starting to build tables...");
-  
-      await client.query(`
-      CREATE TABLE USERS (
+  try {
+    console.log("Starting to build tables...");
+
+    await client.query(`
+      CREATE TABLE users (
         id SERIAL PRIMARY KEY,
         username varchar(255) UNIQUE NOT NULL,
         password varchar(255) NOT NULL,
@@ -36,14 +48,22 @@ async function createTables() {
         content TEXT NOT NULL,
         active BOOLEAN DEFAULT true
       );
+      CREATE TABLE tags (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) UNIQUE NOT NULL,
+      );
+      CREATE TABLE post_tags (
+        "postId" INTEGER REFERENCES posts(id),
+        "tagId" INTEGER REFERENCES tag(id),
+        UNIQUE ("postId", "tagId")
+      )
       `);
-      
-  
-      console.log("Finished building tables!");
-    } catch (error) {
-      console.error("Error building tables!");
-      throw error;
-    }
+
+    console.log("Finished building tables!");
+  } catch (error) {
+    console.error("Error building tables!");
+    throw error;
+  }
 }
 
 async function createInitialUsers() {
@@ -53,20 +73,21 @@ async function createInitialUsers() {
     const albert = await createUser({
       username: "albert",
       password: "bertie99",
-      name: 'Albert',
-      location: 'Hong Kong, China'
+      name: "Albert",
+      location: "Hong Kong, China",
     });
     const sandra = await createUser({
       username: "sandra",
       password: "2sandy4me",
-      name: 'Sandra',
-      location: 'Beverly Hills, California, USA (where the beaches are too sandy for her)'
+      name: "Sandra",
+      location:
+        "Beverly Hills, California, USA (where the beaches are too sandy for her)",
     });
     const glamgal = await createUser({
       username: "glamgal",
       password: "soglam",
       name: "Gina",
-      location: "New York City, New York, USA"
+      location: "New York City, New York, USA",
     });
 
     console.log("Finished creating users!");
@@ -76,30 +97,30 @@ async function createInitialUsers() {
   }
 }
 
-async function createInitialPosts(){
-  try{
+async function createInitialPosts() {
+  try {
     const [albert, sandra, glamgal] = await getAllUsers();
 
     await createPost({
       authorId: albert.id,
       title: "First Post",
-      content: "This is my first post. It is short."
+      content: "This is my first post. It is short.",
     });
 
     await createPost({
       authorId: glamgal.id,
       title: "First Post",
-      content: "This is my first post. It is also short."
+      content: "This is my first post. It is also short.",
     });
 
     await createPost({
       authorId: sandra.id,
       title: "NOT Sandra Bullock",
-      content: "I am NOT Sandra Bullock. Don't EVER call me Sandra Bullock"
+      content: "I am NOT Sandra Bullock. Don't EVER call me Sandra Bullock",
     });
-    console.log("Posts have been created!")
+    console.log("Posts have been created!");
   } catch (error) {
-    console.log("Error creating Sandra Bullocks weird post!")
+    console.log("Error creating Sandra Bullocks weird post!");
     throw error;
   }
 }
@@ -113,7 +134,7 @@ async function rebuildDB() {
     await createInitialUsers();
     await createInitialPosts();
   } catch (error) {
-    console.log("Error during rebuildDB")
+    console.log("Error during rebuildDB");
     throw error;
   }
 }
@@ -122,14 +143,14 @@ async function testDB() {
   try {
     console.log("Starting to test database...");
 
-    console.log('Calling getAllUsers"')
+    console.log('Calling getAllUsers"');
     const users = await getAllUsers();
     console.log("Result:", users);
 
-    console.log('Calling updateUser on users[0]')
+    console.log("Calling updateUser on users[0]");
     const updateUserResult = await updateUser(users[0].id, {
-        name: "Newname Sogood",
-        location: "Lesterville, KY"
+      name: "Newname Sogood",
+      location: "Lesterville, KY",
     });
     console.log("Result:", updateUserResult);
 
@@ -140,7 +161,7 @@ async function testDB() {
     console.log("Calling updatePost on posts[0]");
     const updatePostResult = await updatePost(posts[0].id, {
       title: "New Title",
-      content: "Updated Content"
+      content: "Updated Content",
     });
     console.log("Result:", updatePostResult);
 
