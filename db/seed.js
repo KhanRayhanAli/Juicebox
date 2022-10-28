@@ -8,6 +8,9 @@ const {
   getUserById,
   createPost,
   updatePost,
+  createTags,
+  addTagsToPost,
+
 } = require("./index");
 
 async function dropTables() {
@@ -50,11 +53,11 @@ async function createTables() {
       );
       CREATE TABLE tags (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(255) UNIQUE NOT NULL,
+        name VARCHAR(255) UNIQUE NOT NULL
       );
       CREATE TABLE post_tags (
         "postId" INTEGER REFERENCES posts(id),
-        "tagId" INTEGER REFERENCES tag(id),
+        "tagId" INTEGER REFERENCES tags(id),
         UNIQUE ("postId", "tagId")
       )
       `);
@@ -123,7 +126,34 @@ async function createInitialPosts() {
     console.log("Error creating Sandra Bullocks weird post!");
     throw error;
   }
+} 
+
+async function createInitialTags() {
+  try{
+    console.log("Starting to create tags...");
+
+    const [happy, sad, lonely, nSB, BF] = await createTags([
+      '#so-happy',
+      '#im-literally-crying-rn',
+      '#i-dont-need-friends-they-disappoint-me',
+      '#not-Sandra-Bullock',
+      '#imgonnascreamifonemorepersoncallsmeSandraBullock'
+    ]);
+    
+    const [postOne, postTwo, postThree] = await getAllPosts();
+    
+    await addTagsToPost(postOne.id, [happy, sad]);
+    await addTagsToPost(postTwo.id, [sad, lonely]);
+    await addTagsToPost(postThree.id, [sad, nSB, BF]);
+
+    console.log("Tags created!")
+  } catch (error) {
+    console.log("Oops, no tags!")
+    throw error;
+  }
 }
+
+
 
 async function rebuildDB() {
   try {
@@ -133,6 +163,7 @@ async function rebuildDB() {
     await createTables();
     await createInitialUsers();
     await createInitialPosts();
+    await createInitialTags();
   } catch (error) {
     console.log("Error during rebuildDB");
     throw error;
