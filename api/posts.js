@@ -1,6 +1,7 @@
 const express = require('express');
 const postsRouter = express.Router();
 const { getAllPosts } = require('../db');
+const { requireUser } = require('./utils');
 
 postsRouter.use((req, res, next) => {
     console.log("A request is being made to /posts");
@@ -14,6 +15,10 @@ postsRouter.get('/', async (req, res) => {
     res.send({
         posts
     });
+});
+
+postsRouter.post('/', requireUser, async (req, res, next) => {
+    res,send({ message: 'under construction' });
 });
 
 module.exports = postsRouter;
