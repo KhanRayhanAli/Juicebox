@@ -128,7 +128,7 @@ async function createInitialPosts() {
     });
     console.log("Posts have been created!");
   } catch (error) {
-    console.log("Error creating Sandra Bullocks weird post!");
+    console.log("Error creating post!");
     throw error;
   }
 } 
