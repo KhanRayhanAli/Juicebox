@@ -9,11 +9,11 @@ postsRouter.use((req, res, next) => {
   next();
 });
 
-postsRouter.get("/", async (req, res) => {
+postsRouter.get("/", async (req, res, next) => {
   try {
     const allPosts = await getAllPosts();
 
-    const posts = allPosts.filter((post) => {
+    const posts = allPosts.filter(post => {
         if (post.active) {
             return true;
         }
@@ -23,6 +23,7 @@ postsRouter.get("/", async (req, res) => {
         }
 
         return false;
+        
     });
 
     res.send({
